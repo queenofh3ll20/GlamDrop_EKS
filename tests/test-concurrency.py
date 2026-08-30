@@ -100,19 +100,27 @@ def run_test():
     employee_id = res["employee_id"]
     print(f"Estetista registrata con ID: {employee_id}")
 
-    # 3. Impostazione Orari Estetista (Oggi)
+    # 3. Impostazione Orari Estetista
     print("\n[3] Configurazione Orario Lavorativo...")
+    # Calcoliamo l'orario della prenotazione standard a +2 ore da adesso (garantito < 24h per innescare late cancellation)
+    target_dt = datetime.now() + timedelta(hours=2)
+    booking_date = target_dt.strftime("%Y-%m-%d")
+    booking_time = target_dt.strftime("%Y-%m-%d %H:%M:%S")
+
     today_date = datetime.now().strftime("%Y-%m-%d")
-    status, res = make_request(f"{BOOKING_URL}/api/schedules", "POST", headers=manager_headers, data={
-        "employee_id": employee_id,
-        "schedule_date": today_date,
-        "start_time": "08:00:00",
-        "end_time": "23:00:00"
-    })
-    if status != 200:
-        print(f"Errore impostazione orario: {res}")
-        return
-    print("Orario configurato: 08:00 - 23:00")
+    dates_to_schedule = sorted(list({today_date, booking_date}))
+
+    for s_date in dates_to_schedule:
+        status, res = make_request(f"{BOOKING_URL}/api/schedules", "POST", headers=manager_headers, data={
+            "employee_id": employee_id,
+            "schedule_date": s_date,
+            "start_time": "00:00:00",
+            "end_time": "23:59:59"
+        })
+        if status != 200:
+            print(f"Errore impostazione orario per {s_date}: {res}")
+            return
+    print(f"Orario configurato per date {dates_to_schedule}: 00:00 - 23:59:59")
 
     # 4. Recupero Categoria e Creazione Servizio
     print("\n[4] Recupero categorie e creazione servizio...")
@@ -149,8 +157,6 @@ def run_test():
     client_headers = {"Authorization": f"Bearer {client_token}"}
 
     # 6. Effettua Prenotazione Standard (entro 24h per poter innescare il drop)
-    # Impostiamo l'appuntamento a 4 ore nel futuro
-    booking_time = (datetime.now() + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n[6] Creazione Prenotazione Standard alle ore {booking_time}...")
     status, booking = make_request(f"{BOOKING_URL}/api/bookings", "POST", headers=client_headers, data={
         "service_id": service_id,
