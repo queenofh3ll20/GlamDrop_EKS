@@ -1,0 +1,10 @@
+aws_region       = "eu-south-1"
+project_name     = "glamdrop-eks"
+environment      = "test"
+eks_version      = "1.36"
+instance_type    = "t3.small"
+worker_count     = 2
+asg_min_size     = 2
+asg_max_size     = 4
+root_volume_size = 20
+mq_instance_type = "mq.m5.large"

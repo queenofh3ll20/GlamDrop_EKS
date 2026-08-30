@@ -1,0 +1,146 @@
+# --- ECR Token Renewer (ServiceAccount, RBAC & CronJob) ---
+# Rinnova automaticamente il token di autenticazione Amazon ECR ogni 6 ore
+# per consentire a pod e nodi Auto Scaling Group (ASG) di effettuare il pull continuo.
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecr-token-renewer-sa
+  namespace: glamdrop
+  labels:
+    app.kubernetes.io/name: ecr-token-renewer
+    app.kubernetes.io/part-of: glamdrop-platform
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ecr-token-renewer-role
+  namespace: glamdrop
+  labels:
+    app.kubernetes.io/name: ecr-token-renewer
+    app.kubernetes.io/part-of: glamdrop-platform
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ecr-token-renewer-binding
+  namespace: glamdrop
+  labels:
+    app.kubernetes.io/name: ecr-token-renewer
+    app.kubernetes.io/part-of: glamdrop-platform
+subjects:
+  - kind: ServiceAccount
+    name: ecr-token-renewer-sa
+    namespace: glamdrop
+roleRef:
+  kind: Role
+  name: ecr-token-renewer-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ecr-token-renewer
+  namespace: glamdrop
+  labels:
+    app: ecr-token-renewer
+    app.kubernetes.io/name: ecr-token-renewer
+    app.kubernetes.io/part-of: glamdrop-platform
+spec:
+  schedule: "0 */6 * * *"  # Esecuzione ogni 6 ore (i token ECR scadono dopo 12 ore)
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 180
+      template:
+        metadata:
+          labels:
+            app: ecr-token-renewer
+        spec:
+          serviceAccountName: ecr-token-renewer-sa
+          restartPolicy: OnFailure
+          containers:
+            - name: ecr-renewer
+              image: alpine/k8s:1.31.0
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: AWS_DEFAULT_REGION
+                  valueFrom:
+                    secretKeyRef:
+                      name: glamdrop-secrets
+                      key: aws-region
+                      optional: true
+                - name: AWS_REGION
+                  valueFrom:
+                    secretKeyRef:
+                      name: glamdrop-secrets
+                      key: aws-region
+                      optional: true
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: false
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "64Mi"
+                limits:
+                  cpu: "150m"
+                  memory: "128Mi"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  echo "==> [ECR Token Renewer] Inizio rinnovo token di autenticazione..."
+                  
+                  # 1. Recupero Region AWS
+                  REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-eu-south-1}}"
+                  
+                  # 2. Recupero AWS Account ID tramite STS (usando l'IAM Role dell'istanza EC2)
+                  echo "--> Recupero Account ID da AWS STS..."
+                  ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text 2>/dev/null || true)
+                  if [ -z "$ACCOUNT_ID" ] || [ "$ACCOUNT_ID" = "None" ]; then
+                    echo "[ERRORE] Impossibile recuperare l'AWS Account ID via STS/IMDS. Verificare il ruolo IAM del nodo."
+                    exit 1
+                  fi
+                  
+                  ECR_SERVER="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+                  echo "--> ECR Server identificato: ${ECR_SERVER}"
+                  
+                  # 3. Recupero Token di autenticazione da AWS ECR
+                  echo "--> Generazione nuovo token di login ECR..."
+                  ECR_PASSWORD=$(aws ecr get-login-password --region "$REGION" 2>/dev/null || true)
+                  if [ -z "$ECR_PASSWORD" ]; then
+                    echo "[ERRORE] Generazione del token ECR fallita. Verificare il ruolo IAM (ecr:GetAuthorizationToken)."
+                    exit 1
+                  fi
+                  
+                  # 4. Aggiornamento atomico del secret Kubernetes ecr-secret
+                  echo "--> Creazione/Aggiornamento del secret 'ecr-secret' nel namespace glamdrop..."
+                  kubectl create secret docker-registry ecr-secret \
+                    --namespace=glamdrop \
+                    --docker-server="${ECR_SERVER}" \
+                    --docker-username=AWS \
+                    --docker-password="${ECR_PASSWORD}" \
+                    --dry-run=client -o yaml | kubectl apply -f -
+                  
+                  # 5. Assicura il patching del ServiceAccount default
+                  kubectl patch serviceaccount default -n glamdrop -p '{"imagePullSecrets": [{"name": "ecr-secret"}]}' || true
+                  
+                  echo "[OK] [ECR Token Renewer] Secret 'ecr-secret' rinnovato con successo!"

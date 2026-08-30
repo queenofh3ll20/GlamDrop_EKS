@@ -1,0 +1,80 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: glamdrop-ingress
+  namespace: glamdrop
+  annotations:
+    checkov.io/skip1: CKV_K8S_153=Healthz snippet used for ALB health check
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "15"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "OK";
+      }
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 3001
+          - path: /api/bookings
+            pathType: Prefix
+            backend:
+              service:
+                name: booking-service
+                port:
+                  number: 3002
+          - path: /api/catalog
+            pathType: Prefix
+            backend:
+              service:
+                name: booking-service
+                port:
+                  number: 3002
+          - path: /api/schedules
+            pathType: Prefix
+            backend:
+              service:
+                name: booking-service
+                port:
+                  number: 3002
+          - path: /api/reviews
+            pathType: Prefix
+            backend:
+              service:
+                name: booking-service
+                port:
+                  number: 3002
+          - path: /api/drops
+            pathType: Prefix
+            backend:
+              service:
+                name: drop-service
+                port:
+                  number: 3003
+          - path: /api/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 3004
+          - path: /healthz
+            pathType: Exact
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 3001

@@ -1,0 +1,255 @@
+# --- Default Deny All ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: glamdrop
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# --- Auth Service ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: auth-service-policy
+  namespace: glamdrop
+spec:
+  podSelector:
+    matchLabels:
+      app: auth-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app: booking-service
+        - podSelector:
+            matchLabels:
+              app: drop-service
+      ports:
+        - port: 3001
+          protocol: TCP
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP # CoreDNS in kube-system
+        - port: 53
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 5432
+          protocol: TCP # PostgreSQL RDS
+        - port: 443
+          protocol: TCP # AWS APIs / HTTPS
+        - port: 80
+          protocol: TCP # EC2 Instance Metadata Service (IMDS)
+
+---
+# --- Booking Service ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: booking-service-policy
+  namespace: glamdrop
+spec:
+  podSelector:
+    matchLabels:
+      app: booking-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app: drop-service
+      ports:
+        - port: 3002
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: auth-service
+      ports:
+        - port: 3001
+          protocol: TCP
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP # CoreDNS in kube-system
+        - port: 53
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 5432
+          protocol: TCP # PostgreSQL RDS
+        - port: 5671
+          protocol: TCP # Amazon MQ RabbitMQ AMQPS (TLS)
+        - port: 443
+          protocol: TCP # AWS APIs / HTTPS
+        - port: 80
+          protocol: TCP # EC2 Instance Metadata Service (IMDS)
+
+---
+# --- Drop Service ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: drop-service-policy
+  namespace: glamdrop
+spec:
+  podSelector:
+    matchLabels:
+      app: drop-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - port: 3003
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: booking-service
+      ports:
+        - port: 3002
+          protocol: TCP
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP # CoreDNS in kube-system
+        - port: 53
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 5432
+          protocol: TCP # PostgreSQL RDS
+        - port: 6379
+          protocol: TCP # ElastiCache Redis
+        - port: 5671
+          protocol: TCP # Amazon MQ RabbitMQ AMQPS (TLS)
+        - port: 443
+          protocol: TCP # AWS APIs / HTTPS
+        - port: 80
+          protocol: TCP # EC2 Instance Metadata Service (IMDS)
+
+---
+# --- Notification Service ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: notification-service-policy
+  namespace: glamdrop
+spec:
+  podSelector:
+    matchLabels:
+      app: notification-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - port: 3004
+          protocol: TCP
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP # CoreDNS in kube-system
+        - port: 53
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 5671
+          protocol: TCP # Amazon MQ RabbitMQ AMQPS (TLS)
+        - port: 443
+          protocol: TCP # DynamoDB (HTTPS)
+        - port: 80
+          protocol: TCP # EC2 Instance Metadata Service (IMDS)
+
+---
+# --- ECR Token Renewer CronJob ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ecr-token-renewer-policy
+  namespace: glamdrop
+spec:
+  podSelector:
+    matchLabels:
+      app: ecr-token-renewer
+  policyTypes:
+    - Egress
+  egress:
+    # CoreDNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # AWS APIs (ECR, STS on 443) & Kubernetes API Server (443 / 6443)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 443
+          protocol: TCP
+        - port: 6443
+          protocol: TCP
+    # EC2 Instance Metadata Service (IMDSv2) per token IAM
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 80
+          protocol: TCP

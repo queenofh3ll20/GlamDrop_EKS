@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drop-service
+  namespace: glamdrop
+  labels:
+    app: drop-service
+  annotations:
+    checkov.io/skip1: CKV_K8S_35=Secrets used as env vars
+    checkov.io/skip2: CKV_K8S_43=Standard version tag used
+    checkov.io/skip3: CKV_K8S_15=Local application images use IfNotPresent
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: drop-service
+  template:
+    metadata:
+      labels:
+        app: drop-service
+    spec:
+      imagePullSecrets:
+        - name: ecr-secret
+      automountServiceAccountToken: false
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - drop-service
+                topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: drop-service
+          image: 145406344082.dkr.ecr.eu-south-1.amazonaws.com/glamdrop-eks/drop-service:v1.0.0
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+          ports:
+            - containerPort: 3003
+          env:
+            - name: PORT
+              value: "3003"
+            - name: PGSSLMODE
+              value: "require"
+            - name: BOOKING_SERVICE_URL
+              value: "http://booking-service:3002"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: glamdrop-secrets
+                  key: jwt-secret
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: glamdrop-secrets
+                  key: postgres-host
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: glamdrop-secrets
+                  key: postgres-port
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: glamdrop-secrets
+                  key: postgres-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: glamdrop-secrets
+                  key: postgres-password
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: glamdrop-secrets
+                  key: postgres-db
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: glamdrop-secrets
+                  key: redis-url
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: glamdrop-secrets
+                  key: rabbitmq-url
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 5
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: drop-service
+  namespace: glamdrop
+spec:
+  ports:
+    - port: 3003
+      targetPort: 3003
+  selector:
+    app: drop-service

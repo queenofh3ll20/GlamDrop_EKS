@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlamDrop - Beauty Last-Minute Dashboard</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="logo" onclick="showSalonsList()" style="cursor: pointer;">
+      <img src="logo.png" alt="GlamDrop Logo" class="logo-img-asset">
+    </div>
+
+    <!-- Center Brand Name -->
+    <div class="navbar-center" onclick="showSalonsList()" style="cursor: pointer; position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; z-index: 10;">
+      <img src="name.png" alt="GlamDrop Name" class="logo-name-asset" style="height: 32px; object-fit: contain;">
+    </div>
+    <!-- Settings & Profile -->
+    <div class="nav-actions" style="position: relative;">
+      <!-- Bookings button (moved to the left) -->
+      <button class="btn btn-sm btn-gold-outline" id="client-bookings-nav-btn" style="display: none; margin-right: 12px;" onclick="showClientBookingsView()"><i class="fa-solid fa-calendar-check"></i> Le Mie Prenotazioni</button>
+
+      <!-- Mailbox alerts -->
+      <button class="icon-btn" id="mailbox-btn" title="Notifiche Flash Drop" style="display: none; position: relative; margin-right: 12px;">
+        <i class="fa-solid fa-envelope"></i>
+        <span class="mailbox-badge" id="mailbox-unread-count" style="display: none;">0</span>
+      </button>
+
+      <div id="mailbox-dropdown" class="mailbox-dropdown glass" style="display: none; position: absolute; right: 50px; top: 50px; width: 340px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-lg); z-index: 1000; padding: 15px; background: rgba(255, 255, 255, 0.98); text-align: left;">
+        <div class="dropdown-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 10px;">
+          <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--text-main);"><i class="fa-solid fa-bell text-danger"></i> Notifiche Flash Drop</h4>
+          <button class="btn btn-sm btn-clear-notif" id="clear-notif-btn" style="font-size: 11px; padding: 2px 6px; border: 1px solid var(--border-color); border-radius: 4px; background: none; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-trash-can"></i> Pulisci</button>
+        </div>
+        <div id="mailbox-notifications-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <p class="placeholder-text" style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 15px 0;">Nessuna notifica al momento.</p>
+        </div>
+      </div>
+
+      <!-- Profile Round Menu -->
+      <div id="profile-menu-container" style="position: relative; display: none; margin-right: 12px;">
+        <button class="profile-avatar-btn" id="profile-avatar-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--gold); background: var(--bg-secondary); color: var(--gold); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; outline: none; transition: var(--transition);">
+          <i class="fa-solid fa-user"></i>
+        </button>
+        <div id="profile-dropdown" class="profile-dropdown glass" style="display: none; position: absolute; right: 0; top: 45px; width: 180px; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow-md); z-index: 1000; padding: 8px 0; background: rgba(255, 255, 255, 0.98); text-align: left;">
+          <div class="dropdown-user-info" style="padding: 6px 15px 10px 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
+            <div id="profile-dropdown-name" style="font-size: 13px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Utente</div>
+            <div id="profile-dropdown-role" style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Cliente</div>
+          </div>
+          <button class="dropdown-item" onclick="showClientSettingsView()" style="width: 100%; text-align: left; padding: 8px 15px; border: none; background: none; font-size: 12px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-gear" style="color: var(--text-muted);"></i> Impostazioni</button>
+          <button class="dropdown-item" id="logout-dropdown-btn" style="width: 100%; text-align: left; padding: 8px 15px; border: none; background: none; font-size: 12px; cursor: pointer; color: var(--pink); display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-right-from-bracket"></i> Esci</button>
+        </div>
+      </div>
+      
+      <!-- Login & Register buttons in Navbar -->
+      <div id="auth-nav-buttons" class="auth-navbar-group">
+        <button class="btn btn-sm btn-gold-outline open-login-btn" data-role="client"><i class="fa-solid fa-right-to-bracket"></i> Accedi</button>
+        <button class="btn btn-sm btn-gold" onclick="openRegister('client')"><i class="fa-solid fa-user-plus"></i> Registrati</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    
+    <section id="client-tab" class="tab-content active">
+      
+      <!-- B2C Home View (Salons List) -->
+      <div id="salons-list-view">
+        
+        <!-- B2C Hero Search Area -->
+        <div class="search-hero-container">
+          <h1 style="font-size: 34px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; line-height: 1.2;">Prenota i migliori saloni beauty last-minute</h1>
+          <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px; max-width: 600px;">Trova trattamenti esclusivi a metà prezzo con i nostri GlamDrop istantanei.</p>
+          
+          <!-- Search Bar -->
+          <div class="search-bar-horizontal">
+            <div class="search-field-item">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="search-salon-name" placeholder="Cerca salone o trattamento..." oninput="filterSalonsAndServices()">
+            </div>
+            
+            <!-- Custom City Autocomplete Droplist -->
+            <div class="search-field-item city-autocomplete-wrapper">
+              <i class="fa-solid fa-location-dot"></i>
+              <input type="text" id="search-salon-location" placeholder="Cerca città..." autocomplete="off">
+              <div id="city-dropdown-panel" class="city-autocomplete-dropdown"></div>
+            </div>
+
+            <!-- Custom Category Dropdown Wrapper -->
+            <div class="search-field-item city-autocomplete-wrapper" id="category-picker-wrapper">
+              <i class="fa-solid fa-filter"></i>
+              <input type="text" id="search-salon-category-input" placeholder="Tutte le categorie" readonly autocomplete="off">
+              <input type="hidden" id="search-salon-category" value="all">
+              <div id="category-dropdown-panel" class="city-autocomplete-dropdown" style="min-width: 280px;">
+                <div class="autocomplete-item" data-val="all">
+                  <div class="autocomplete-icon-wrapper"><i class="fa-solid fa-border-all"></i></div>
+                  <div class="autocomplete-info">
+                    <span class="autocomplete-city-name">Tutte le categorie</span>
+                  </div>
+                </div>
+                <div class="autocomplete-item" data-val="Corpo">
+                  <div class="autocomplete-icon-wrapper"><i class="fa-solid fa-spa"></i></div>
+                  <div class="autocomplete-info">
+                    <span class="autocomplete-city-name">Corpo</span>
+                    <span class="autocomplete-province-country">Massaggi e trattamenti</span>
+                  </div>
+                </div>
+                <div class="autocomplete-item" data-val="Viso">
+                  <div class="autocomplete-icon-wrapper"><i class="fa-solid fa-face-smile"></i></div>
+                  <div class="autocomplete-info">
+                    <span class="autocomplete-city-name">Viso</span>
+                    <span class="autocomplete-province-country">Pulizia e scrub viso</span>
+                  </div>
+                </div>
+                <div class="autocomplete-item" data-val="Capelli">
+                  <div class="autocomplete-icon-wrapper"><i class="fa-solid fa-scissors"></i></div>
+                  <div class="autocomplete-info">
+                    <span class="autocomplete-city-name">Capelli</span>
+                    <span class="autocomplete-province-country">Taglio e colore</span>
+                  </div>
+                </div>
+                <div class="autocomplete-item" data-val="Unghie">
+                  <div class="autocomplete-icon-wrapper"><i class="fa-solid fa-hand"></i></div>
+                  <div class="autocomplete-info">
+                    <span class="autocomplete-city-name">Unghie</span>
+                    <span class="autocomplete-province-country">Manicure e ricostruzione</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Preserved hidden inputs for JS compatibility -->
+            <input type="hidden" id="search-salon-date" value="">
+            <input type="hidden" id="search-salon-time" value="">
+            
+            <!-- Clear Filters Button -->
+            <button type="button" class="btn-reset-filters" id="reset-search-filters" title="Resetta filtri">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Social Proof Counter -->
+          <div class="social-counter-banner">
+            <span class="social-counter-number" id="stats-prenotati-oggi">12.842</span> appuntamenti prenotati oggi
+          </div>
+        </div>
+
+        <!-- Featured Section Title -->
+        <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px; max-width: 1200px; margin-left: auto; margin-right: auto; text-align: left;">I nostri saloni</h2>
+        
+        <!-- Salons Cards Grid -->
+        <div id="salons-grid" class="salons-grid">
+          <p class="placeholder-text">Caricamento saloni consigliati...</p>
+        </div>
+      </div>
+
+      <!-- B2C Salon Detail View -->
+      <div id="salon-detail-view" style="display: none;">
+        
+        <!-- Back Navigation Button -->
+        <div class="detail-back-bar">
+          <a class="btn-back-link" onclick="showSalonsList()"><i class="fa-solid fa-arrow-left"></i> Torna ai Saloni</a>
+        </div>
+
+        <!-- Salon Detail Header Card -->
+        <!-- Salon Detail Header Card -->
+        <div class="detail-salon-header-card">
+          <div class="detail-salon-header-content">
+            <h1 class="detail-salon-title" id="detail-salon-name">Nome Salone</h1>
+            <div class="detail-salon-address">
+              <i class="fa-solid fa-location-dot" style="color: var(--gold);"></i> 
+              <span id="detail-salon-address">Indirizzo Salone</span>
+            </div>
+            <p class="detail-salon-desc" id="detail-salon-desc">Descrizione salone.</p>
+          </div>
+          <!-- HOT DROPS (Flash Sales) for this salon -->
+          <div class="card glass hot-card" style="margin-bottom: 0; box-shadow: none; border-color: var(--pink); border-width: 1px;">
+            <div class="card-header flex-header" style="padding: 12px 18px; border-bottom: 1px solid var(--border-color);">
+              <h3 style="font-size: 15px; margin: 0;"><i class="fa-solid fa-fire text-danger animate-pulse"></i> GlamDrops Attivi (-50%)</h3>
+            </div>
+            <div class="card-body" style="padding: 15px 18px;">
+              <div id="drops-list" class="drops-grid" style="grid-template-columns: 1fr; gap: 15px;">
+                <p class="placeholder-text" style="font-size: 12px; padding: 10px 0;">Nessun drop attivo al momento. Fai una cancellazione tardiva (&lt;24h) per vederlo comparire!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Select salon element (Hidden for compatibility but synced with app.js) -->
+        <select id="salon-select" style="display: none;"></select>
+
+        <!-- Sidebar layout: Catalog & Reviews on Left, active drops & bookings on Right Sidebar -->
+        <div class="salon-detail-layout">
+          
+          <!-- Column Left (2/3 width) -->
+          <div class="salon-detail-left-col">
+            <!-- UNIFIED CATALOG WITH INTEGRATED FILTERS -->
+            <div id="catalog-section" style="margin-bottom: 30px;">
+              <div class="catalog-header-unified" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h3 style="font-size: 22px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-book-open" style="color: var(--gold);"></i> Menu Trattamenti & Servizi</h3>
+                <div class="catalog-filters" style="margin-bottom: 0; padding-bottom: 0; display: flex; gap: 8px;">
+                  <button class="cat-filter-btn active" data-category="all">Tutti</button>
+                  <button class="cat-filter-btn" data-category="Corpo">Corpo</button>
+                  <button class="cat-filter-btn" data-category="Viso">Viso</button>
+                  <button class="cat-filter-btn" data-category="Capelli">Capelli</button>
+                  <button class="cat-filter-btn" data-category="Unghie">Unghie</button>
+                </div>
+              </div>
+              <div id="catalog-list" class="catalog-list">
+                <p class="placeholder-text">Caricamento servizi...</p>
+              </div>
+            </div>
+
+            <!-- REVIEWS CARD -->
+            <div class="reviews-section-card">
+              <h3 style="font-size: 18px; font-weight: 800; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-star" style="color: #FFB020;"></i> Recensioni del Salone
+              </h3>
+              <div id="salon-reviews-list" class="reviews-list-container">
+                <p class="placeholder-text">Nessuna recensione disponibile per questo salone.</p>
+              </div>
+            </div>
+          </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- B2C Client Bookings Dedicated View -->
+      <div id="client-bookings-view" style="display: none;">
+        <!-- Back Navigation Button -->
+        <div class="detail-back-bar" style="margin-bottom: 25px;">
+          <a class="btn-back-link" onclick="showSalonsList()"><i class="fa-solid fa-arrow-left"></i> Torna alla Home</a>
+        </div>
+        
+        <div class="card" style="margin-bottom: 30px; border-radius: 24px; padding: 30px; box-shadow: var(--shadow-sm); background: var(--bg-secondary);">
+          <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-calendar-check" style="color: var(--gold);"></i> Le Mie Prenotazioni
+          </h2>
+          
+          <!-- Booking Categorization & Ordering Controls -->
+          <div class="booking-filters-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; background: var(--bg-primary); padding: 15px; border-radius: 14px; border: 1px solid var(--border-color);">
+            <div>
+              <label for="filter-booking-status" style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Stato Prenotazione</label>
+              <select id="filter-booking-status" style="width: 100%; margin-top: 5px;">
+                <option value="all">Tutte le prenotazioni</option>
+                <option value="active">Attive (Confermate/In Attesa)</option>
+                <option value="past">Passate (Eseguite/Vecchie)</option>
+                <option value="cancelled">Cancellate</option>
+              </select>
+            </div>
+            <div>
+              <label for="sort-booking-by" style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Ordina per</label>
+              <select id="sort-booking-by" style="width: 100%; margin-top: 5px;">
+                <option value="date-desc">Data: Più recenti prima</option>
+                <option value="date-asc">Data: Meno recenti prima</option>
+                <option value="salon">Salone (A-Z)</option>
+                <option value="category">Tipologia / Categoria (A-Z)</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- List Container -->
+          <div id="dedicated-bookings-list" class="bookings-list" style="display: flex; flex-direction: column; gap: 15px;">
+            <p class="placeholder-text">Caricamento prenotazioni...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- B2C Client Settings Dedicated View -->
+      <div id="client-settings-view" style="display: none;">
+        <!-- Back Navigation Button -->
+        <div class="detail-back-bar" style="margin-bottom: 25px;">
+          <a class="btn-back-link" onclick="showSalonsList()"><i class="fa-solid fa-arrow-left"></i> Torna alla Home</a>
+        </div>
+        
+        <div class="card" style="margin-bottom: 30px; border-radius: 24px; padding: 30px; box-shadow: var(--shadow-sm); background: var(--bg-secondary);">
+          <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-sliders" style="color: var(--gold);"></i> Impostazioni Utente & Preferenze Notifiche
+          </h2>
+          
+          <form id="user-preferences-form" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+            <!-- Enable notifications toggle -->
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 10px; margin-top: 10px; justify-content: flex-start; text-align: left;">
+              <input type="checkbox" id="pref-notif-enabled" style="width: 18px; height: 18px; accent-color: var(--gold);" checked>
+              <label for="pref-notif-enabled" style="font-weight: 700; font-size: 13px; color: var(--text-main); cursor: pointer; margin-bottom: 0;">Attiva notifiche flash per i GlamDrop Last-Minute</label>
+            </div>
+
+            <div id="preferences-details-section">
+              <!-- Filter by Cities -->
+              <div class="form-group" style="margin-top: 15px;">
+                <label style="font-weight: 700; font-size: 13px; color: var(--text-main); display: block; margin-bottom: 10px;">Ricevi notifiche dei Drop solo per le seguenti Città:</label>
+                <div class="city-autocomplete-wrapper" style="position: relative;">
+                  <div id="pref-cities-tags-container" class="tags-input-container" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 12px; background: var(--bg-primary); min-height: 46px; cursor: text;">
+                    <!-- Tags will go here -->
+                    <input type="text" id="add-pref-city" placeholder="Scrivi per cercare e aggiungere città..." autocomplete="off" style="border: none; outline: none; background: transparent; flex-grow: 1; min-width: 150px; font-size: 13px; color: var(--text-main); padding: 4px 0;">
+                  </div>
+                  <div id="add-pref-city-panel" class="city-autocomplete-dropdown" style="top: 100%; left: 0; width: 100%; min-width: 100%; margin-top: 4px;"></div>
+                </div>
+              </div>
+
+              <!-- Filter by Salons -->
+              <div class="form-group" style="margin-top: 15px;">
+                <label style="font-weight: 700; font-size: 13px; color: var(--text-main); display: block; margin-bottom: 10px;">Ricevi notifiche solo dai seguenti Saloni:</label>
+                <div id="pref-salons-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 12px; border-radius: 12px; background: var(--bg-primary);">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <!-- Filter by Treatments -->
+              <div class="form-group" style="margin-top: 15px;">
+                <label style="font-weight: 700; font-size: 13px; color: var(--text-main); display: block; margin-bottom: 10px;">Ricevi notifiche solo per le seguenti categorie di Trattamento:</label>
+                <div id="pref-categories-container" style="display: flex; gap: 15px; flex-wrap: wrap; border: 1px solid var(--border-color); padding: 12px; border-radius: 12px; background: var(--bg-primary);">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;"><input type="checkbox" name="pref-category" value="Corpo" style="accent-color: var(--gold); width: 16px; height: 16px;"> Corpo</label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;"><input type="checkbox" name="pref-category" value="Viso" style="accent-color: var(--gold); width: 16px; height: 16px;"> Viso</label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;"><input type="checkbox" name="pref-category" value="Capelli" style="accent-color: var(--gold); width: 16px; height: 16px;"> Capelli</label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;"><input type="checkbox" name="pref-category" value="Unghie" style="accent-color: var(--gold); width: 16px; height: 16px;"> Unghie</label>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 10px; padding: 14px; border-radius: 12px; font-weight: 800;"><i class="fa-solid fa-arrow-left-long"></i> Chiudi e Torna alla Home</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CONCURRENCY SIMULATOR TAB ================= -->
+    <section id="simulator-tab" class="tab-content">
+      <div class="simulator-container">
+        
+        <!-- Top simulation control panel -->
+        <div class="card glass">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-gauge-high"></i> Simulatore di Traffico Concorrente (Thundering Herd)</h3>
+          </div>
+          <div class="card-body">
+            <p class="description-text">
+              Questo strumento consente di verificare dal vivo la protezione dal <strong>Thundering Herd</strong> fornita dall'architettura del progetto.
+              Verrà selezionato un <strong>Drop attivo</strong> ed inviato simultaneamente un carico di <strong>50 richieste concorrenti di acquisto</strong> da 50 utenti diversi nello stesso istante.
+            </p>
+            
+            <div class="sim-setup-box mt-3">
+              <div class="form-group">
+                <label for="sim-drop-select">Seleziona il Drop da Contendere</label>
+                <select id="sim-drop-select" class="styled-select">
+                  <option value="">Caricamento Drop disponibili...</option>
+                </select>
+              </div>
+              <div class="sim-actions">
+                <button class="btn btn-gold btn-lg" id="run-sim-btn" disabled>
+                  <i class="fa-solid fa-play"></i> Esegui Assalto Simultaneo (50 Clienti)
+                </button>
+                <button class="btn btn-gold-outline" id="auto-setup-sim-btn">
+                  <i class="fa-solid fa-magic animate-pulse"></i> Auto-Setup Scenario (Cancellazione Tardiva & Drop)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Realtime results -->
+        <div class="simulation-results-grid mt-4">
+          <!-- Stats summary -->
+          <div class="card glass stats-card">
+            <div class="card-header">
+              <h4>Tempi e Risultati</h4>
+            </div>
+            <div class="card-body">
+              <div class="stat-item">
+                <span class="stat-label">Richieste Totali:</span>
+                <span class="stat-value" id="sim-stat-total">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Successi (202 Accepted):</span>
+                <span class="stat-value text-success" id="sim-stat-success">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Conflitti (409 Taken):</span>
+                <span class="stat-value text-danger" id="sim-stat-conflict">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Tempo Medio Risposta:</span>
+                <span class="stat-value" id="sim-stat-time">0 ms</span>
+              </div>
+
+              <!-- Visual progress/ratio bar -->
+              <div class="progress-bar-container mt-3">
+                <div class="progress-bar-fill" id="sim-progress-bar" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- List of concurrent requests -->
+          <div class="card glass log-card">
+            <div class="card-header">
+              <h4>Registro delle Richieste (Live Console Log)</h4>
+            </div>
+            <div class="card-body log-body" id="sim-logs">
+              <p class="placeholder-text">Premi su "Esegui Assalto" per visualizzare le risposte delle richieste concorrenti.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS & OVERLAYS ================= -->
+
+  <!-- LOGIN MODAL -->
+  <dialog id="login-modal" class="modal-dialog glass">
+    <div class="modal-header">
+      <h3 id="login-modal-title">Accedi</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('login-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Role indicator -->
+      <div id="modal-role-badge" class="role-badge">Cliente</div>
+      
+      <form id="login-form" class="styled-form">
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required>
+        </div>
+        <button type="submit" class="btn btn-gold w-100">Accedi</button>
+      </form>
+      
+      <!-- Register toggle -->
+      <div class="modal-toggle-text mt-3" id="register-toggle-box">
+        Non hai un account? <a href="#" id="toggle-register-btn">Registrati ora</a>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- REGISTER MODAL -->
+  <dialog id="register-modal" class="modal-dialog glass">
+    <div class="modal-header">
+      <h3 id="register-modal-title">Registrazione</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('register-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="role-selector-tab-container" style="display: flex; gap: 8px; margin-bottom: 15px;">
+        <button type="button" class="btn btn-sm btn-gold active" id="reg-role-client-btn" onclick="setRegisterRole('client')" style="flex: 1;">
+          <i class="fa-solid fa-user"></i> Cliente
+        </button>
+        <button type="button" class="btn btn-sm btn-gold-outline" id="reg-role-manager-btn" onclick="setRegisterRole('salon_manager')" style="flex: 1;">
+          <i class="fa-solid fa-store"></i> Salone Partner (Manager)
+        </button>
+      </div>
+
+      <form id="register-form" class="styled-form scrollable-form">
+        <!-- Fields depend on registration type -->
+        <div class="form-group">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" required>
+        </div>
+        <div class="form-group row">
+          <div class="col">
+            <label for="reg-firstname">Nome</label>
+            <input type="text" id="reg-firstname" required>
+          </div>
+          <div class="col">
+            <label for="reg-lastname">Cognome</label>
+            <input type="text" id="reg-lastname" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reg-phone">Telefono</label>
+          <input type="text" id="reg-phone">
+        </div>
+
+        <!-- Manager Fields -->
+        <div id="manager-reg-fields" style="display: none;">
+          <h4 class="form-section-title" style="margin-top: 15px; margin-bottom: 10px; font-weight: 700; color: var(--gold); border-top: 1px solid var(--border-color); padding-top: 12px;">Dati del Salone</h4>
+          <div class="form-group">
+            <label for="reg-salonname">Nome Salone *</label>
+            <input type="text" id="reg-salonname" placeholder="Es. Vanity Hair & Beauty">
+          </div>
+          <div class="form-group row">
+            <div class="col">
+              <label for="reg-salonstreet">Via e Numero *</label>
+              <input type="text" id="reg-salonstreet" placeholder="Es. Via Roma 15">
+            </div>
+            <div class="col">
+              <label for="reg-saloncity">Città *</label>
+              <input type="text" id="reg-saloncity" placeholder="Es. Milano">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-salondescription">Descrizione Salone</label>
+            <textarea id="reg-salondescription" rows="2" placeholder="Breve descrizione del salone e dei trattamenti offerti..."></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold w-100 mt-2" id="reg-submit-btn">Registrati</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- BOOKING MODAL -->
+  <dialog id="booking-modal" class="modal-dialog glass">
+    <div class="modal-header">
+      <h3>Prenota Trattamento</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('booking-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="booking-summary-box">
+        <h4 id="bk-service-name">Nome Servizio</h4>
+        <p id="bk-service-price">Prezzo: 0.00€</p>
+      </div>
+
+      <form id="booking-form" class="styled-form mt-3">
+        <input type="hidden" id="bk-service-id">
+        <input type="hidden" id="bk-service-duration">
+        <div class="form-group">
+          <label>Seleziona Estetista/Dipendente</label>
+          <select id="bk-employee-select" required style="display: none;">
+            <option value="">Seleziona un'estetista...</option>
+          </select>
+          <div id="bk-employee-cards-container" class="employee-cards-grid">
+            <p class="placeholder-text" style="text-align: center; padding: 10px 0; font-size: 0.85rem;">Nessuna estetista qualificata per questo trattamento.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="bk-date">Seleziona Data</label>
+          <input type="date" id="bk-date" required>
+        </div>
+        <div class="form-group">
+          <label>Orari Disponibili (Seleziona uno slot)</label>
+          <div id="bk-slots-container" class="slots-grid-container">
+            <p class="placeholder-text" style="font-size: 0.85rem; padding: 10px 0;">Seleziona dipendente e data per caricare gli slot.</p>
+          </div>
+          <input type="hidden" id="bk-selected-time" required>
+        </div>
+
+        <!-- Payment simulation card details -->
+        <h4 class="section-title mt-3">Metodo di Pagamento (Simulato)</h4>
+        <div class="mock-card-box">
+          <div class="form-group">
+            <label>Numero Carta</label>
+            <input type="text" placeholder="4000 1234 5678 9010" disabled>
+          </div>
+          <div class="form-group row">
+            <div class="col">
+              <label>Scadenza</label>
+              <input type="text" placeholder="12/28" disabled>
+            </div>
+            <div class="col">
+              <label>CVV</label>
+              <input type="text" placeholder="123" disabled>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-gold w-100 mt-3">Conferma e Paga</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- REVIEW MODAL -->
+  <dialog id="review-modal" class="modal-dialog glass" style="max-width: 460px;">
+    <div class="modal-header">
+      <h3>Lascia una Recensione</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('review-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <form id="review-form">
+      <div class="modal-body" style="padding: 24px;">
+        <input type="hidden" id="rev-booking-id">
+        <input type="hidden" id="rev-salon-id">
+        
+        <p class="review-helper-text">La tua opinione è preziosa! Assegna una valutazione da 1 a 5 stelle e lascia un commento sulla tua esperienza.</p>
+        
+        <div class="star-rating-select-container">
+          <div class="star-rating-select" id="star-rating-selector">
+            <i class="fa-solid fa-star" data-rating="1"></i>
+            <i class="fa-solid fa-star" data-rating="2"></i>
+            <i class="fa-solid fa-star" data-rating="3"></i>
+            <i class="fa-solid fa-star" data-rating="4"></i>
+            <i class="fa-solid fa-star" data-rating="5"></i>
+          </div>
+        </div>
+        <input type="hidden" id="rev-rating-value" value="5">
+
+        <div class="form-group">
+          <label for="rev-comment" class="form-label-premium">Commento (opzionale)</label>
+          <textarea id="rev-comment" rows="4" placeholder="Scrivi qui cosa ti è piaciuto o cosa possiamo migliorare..." class="form-textarea-premium"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-gold btn-block" style="margin-top: 24px; padding: 12px; font-weight: 700; width: 100%;">Invia Recensione</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- SETTINGS MODAL -->
+  <dialog id="settings-modal" class="modal-dialog glass">
+    <div class="modal-header">
+      <h3>Configurazione API Endpoint</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('settings-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="description-text mb-3">In produzione su AWS le API sono instradate automaticamente tramite CloudFront e ALB. Questo pannello permette di sovrascrivere manualmente gli endpoint per ambienti di test e debug.</p>
+      <form id="settings-form" class="styled-form">
+        <div class="form-group">
+          <label for="cfg-auth-url">Auth Service URL</label>
+          <input type="url" id="cfg-auth-url" placeholder="https://dXXXXXXXX.cloudfront.net o http://alb-dns:3001" required>
+        </div>
+        <div class="form-group">
+          <label for="cfg-booking-url">Booking Service URL</label>
+          <input type="url" id="cfg-booking-url" placeholder="https://dXXXXXXXX.cloudfront.net o http://alb-dns:3002" required>
+        </div>
+        <div class="form-group">
+          <label for="cfg-drop-url">Drop Service URL</label>
+          <input type="url" id="cfg-drop-url" placeholder="https://dXXXXXXXX.cloudfront.net o http://alb-dns:3003" required>
+        </div>
+        <button type="submit" class="btn btn-gold w-100 mt-2">Salva Configurazione</button>
+      </form>
+    </div>
+  </dialog>
+
+  </main>
+
+  <footer class="main-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <img src="logo2.png" alt="GlamDrop Logo" style="height: 96px; object-fit: contain; margin-bottom: 10px;">
+        <p class="footer-logo-desc">GlamDrop è la piattaforma leader per la prenotazione di trattamenti di bellezza e benessere last-minute con sconti flash esclusivi del 50%.</p>
+        <div class="payment-methods-row">
+          <i class="fa-brands fa-cc-visa"></i>
+          <i class="fa-brands fa-cc-mastercard"></i>
+          <i class="fa-brands fa-cc-paypal"></i>
+          <i class="fa-brands fa-cc-apple-pay"></i>
+          <i class="fa-brands fa-cc-amazon-pay"></i>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Chi Siamo</h4>
+        <ul>
+          <li><a>La Nostra Storia</a></li>
+          <li><a>Lavora con Noi</a></li>
+          <li><a>Stampa & Media</a></li>
+          <li><a>Contattaci</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Informativa Legale</h4>
+        <ul>
+          <li><a>Termini & Condizioni</a></li>
+          <li><a>Informativa Privacy</a></li>
+          <li><a>Informativa Cookie</a></li>
+          <li><a>Gestione Consensi</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Business & Dev</h4>
+        <ul>
+          <li><a href="#" id="footer-partner-portal-link" target="_blank" style="font-weight: 700; color: var(--gold);"><i class="fa-solid fa-store"></i> Area Partner (B2B)</a></li>
+          <li><a onclick="switchToSimulatorTab()" style="font-weight: 700; cursor: pointer;"><i class="fa-solid fa-square-poll-vertical"></i> Concurrency Test</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 GlamDrop S.r.l. Tutti i diritti riservati. P.IVA 12345678901</div>
+      <div class="footer-bottom-links">
+        <a>Privacy Policy</a>
+        <a>Cookie Policy</a>
+      </div>
+    </div>
+  </footer>
+
+
+
+  <script src="config.js"></script>
+  <script src="app.js?v=24"></script>
+</body>
+</html>

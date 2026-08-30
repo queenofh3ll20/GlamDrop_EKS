@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlamDrop Partner Portal - Saloni & Staff</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Google Fonts Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="partner-portal">
+
+  <!-- Header/Navbar -->
+  <header class="navbar">
+    <div class="logo" style="cursor: pointer;" onclick="window.location.reload()">
+      <img src="logo.png" alt="GlamDrop Logo" class="logo-img-asset">
+    </div>
+
+    <!-- Center Brand Name -->
+    <div class="navbar-center" style="cursor: pointer; position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; z-index: 10;" onclick="window.location.reload()">
+      <img src="name.png" alt="GlamDrop Name" class="logo-name-asset" style="height: 32px; object-fit: contain;">
+    </div>
+
+    <!-- Settings & Profile -->
+    <div class="nav-actions" style="position: relative; display: flex; align-items: center; gap: 15px;">
+      <!-- Mailbox alerts -->
+      <button class="icon-btn" id="mailbox-btn" title="Notifiche Partner" style="display: none; position: relative;">
+        <i class="fa-solid fa-envelope"></i>
+        <span class="mailbox-badge" id="mailbox-unread-count" style="display: none;">0</span>
+      </button>
+
+      <div id="mailbox-dropdown" class="mailbox-dropdown glass" style="display: none; position: absolute; right: 0; top: 45px; width: 340px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-lg); z-index: 1000; padding: 15px; background: rgba(255, 255, 255, 0.98); text-align: left;">
+        <div class="dropdown-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 10px;">
+          <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--text-main);"><i class="fa-solid fa-bell text-danger"></i> Notifiche Partner</h4>
+          <button class="btn btn-sm btn-clear-notif" id="clear-notif-btn" style="font-size: 11px; padding: 2px 6px; border: 1px solid var(--border-color); border-radius: 4px; background: none; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-trash-can"></i> Pulisci</button>
+        </div>
+        <div id="mailbox-notifications-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <p class="placeholder-text" style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 15px 0;">Nessuna notifica al momento.</p>
+        </div>
+      </div>
+
+      <span id="user-display" class="user-badge" style="display: none;">
+        <i class="fa-solid fa-circle-user"></i> <span id="user-name">Partner</span>
+        <button id="logout-btn" title="Logout" class="logout-navbar-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Dashboard -->
+  <main class="main-container">
+
+    <!-- ================= GUEST LANDING VIEW (SIDE-BY-SIDE CARDS) ================= -->
+    <div id="partner-guest-landing-view" class="partner-guest-flex">
+      
+      <!-- Card 1: Gestione Salone -->
+      <div class="partner-hero-card">
+        <div class="partner-hero-content">
+          <div class="partner-hero-icon-badge">
+            <i class="fa-solid fa-gem"></i>
+          </div>
+          <h2 class="partner-hero-title">Gestione Salone</h2>
+          <p class="partner-hero-desc">
+            Accedi all'area riservata ai gestori per amministrare il tuo salone, organizzare lo staff, gestire il catalogo trattamenti e pubblicare le tue offerte Drop.
+          </p>
+        </div>
+        <button class="open-login-btn partner-hero-btn" data-role="salon_manager">
+          <i class="fa-solid fa-right-to-bracket"></i> Accedi come Salone
+        </button>
+      </div>
+
+      <!-- Card 2: Gestione dipendenti -->
+      <div class="partner-hero-card">
+        <div class="partner-hero-content">
+          <div class="partner-hero-icon-badge">
+            <i class="fa-solid fa-gem"></i>
+          </div>
+          <h2 class="partner-hero-title">Gestione dipendenti</h2>
+          <p class="partner-hero-desc">
+            Accedi all'area riservata al personale per consultare i tuoi turni di lavoro assegnati, la tua agenda appuntamenti e segnalare eventuali indisponibilità.
+          </p>
+        </div>
+        <button class="open-login-btn partner-hero-btn" data-role="employee">
+          <i class="fa-solid fa-right-to-bracket"></i> Accedi come Dipendente
+        </button>
+      </div>
+
+    </div>
+    
+    <!-- ================= MANAGER TAB ================= -->
+    <section id="manager-tab" class="tab-content">
+      <div id="manager-dashboard-view" class="partner-portal-grid" style="display: none;">
+        
+        <!-- Sidebar B2B navigation -->
+        <aside class="partner-sidebar">
+          <h4 class="partner-sidebar-title">Menu Salone</h4>
+          <ul class="partner-sidebar-menu">
+            <li><a class="partner-menu-item active" onclick="switchB2BTab('sec-agenda-prenotazioni', this)"><i class="fa-solid fa-list-check"></i> Agenda Generale</a></li>
+            <li><a class="partner-menu-item" onclick="switchB2BTab('sec-statistiche-salone', this)"><i class="fa-solid fa-chart-line"></i> Statistiche</a></li>
+            <li><a class="partner-menu-item" onclick="switchB2BTab('sec-info-salone', this)"><i class="fa-solid fa-store"></i> Info Salone</a></li>
+            <li><a class="partner-menu-item" onclick="switchB2BTab('sec-gestione-staff', this)"><i class="fa-solid fa-users"></i> Gestione Staff</a></li>
+            <li><a class="partner-menu-item" onclick="switchB2BTab('sec-catalogo-servizi', this)"><i class="fa-solid fa-book-open"></i> Catalogo Servizi</a></li>
+            <li><a class="partner-menu-item" onclick="switchB2BTab('sec-pubblica-drop', this)"><i class="fa-solid fa-fire"></i> Pubblica Drop</a></li>
+          </ul>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <div class="main-column">
+          
+          <!-- TAB: Statistiche -->
+          <div id="sec-statistiche-salone" class="b2b-section-card" style="display: none;">
+            <div class="card">
+              <div class="card-header flex-header" style="justify-content: space-between; align-items: center;">
+                <h3><i class="fa-solid fa-chart-line"></i> Statistiche Salone</h3>
+                <div class="period-selectors" style="display: flex; gap: 8px;">
+                  <button class="btn btn-sm btn-gold active" onclick="changeStatsPeriod('day', this)">Giorno</button>
+                  <button class="btn btn-sm btn-gold-outline" onclick="changeStatsPeriod('week', this)">Settimana</button>
+                  <button class="btn btn-sm btn-gold-outline" onclick="changeStatsPeriod('month', this)">Mese</button>
+                  <button class="btn btn-sm btn-gold-outline" onclick="changeStatsPeriod('year', this)">Anno</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <!-- Relocated Stats Row -->
+                <div class="stats-row" style="margin-bottom: 25px;">
+                  <div class="stat-card">
+                    <span class="stat-card-title">Incassi Stimati</span>
+                    <span class="stat-card-value" id="stats-revenue">€0.00</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-card-title">Appuntamenti Totali</span>
+                    <span class="stat-card-value" id="stats-bookings">0</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-card-title">GlamDrops Attivati</span>
+                    <span class="stat-card-value drop-value" id="stats-drops">0</span>
+                  </div>
+                </div>
+
+                <!-- Charts and breakdown container -->
+                <div class="stats-visuals-grid" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px;">
+                  <!-- Chart Panel -->
+                  <div class="stats-panel" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 15px 0;">Andamento Incassi</h4>
+                    <div id="stats-chart-container" style="height: 220px; display: flex; align-items: flex-end; justify-content: space-around; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                      <p class="placeholder-text" style="align-self: center; margin: auto;">Nessun dato da mostrare per questo periodo.</p>
+                    </div>
+                    <div id="stats-chart-labels" style="display: flex; justify-content: space-around; margin-top: 5px; font-size: 10px; color: var(--text-muted);">
+                    </div>
+                  </div>
+
+                  <!-- Treatments list Panel -->
+                  <div class="stats-panel" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); max-height: 270px; overflow-y: auto;">
+                    <h4 style="margin: 0 0 15px 0;">Trattamenti Eseguiti</h4>
+                    <div id="stats-treatments-list" style="display: flex; flex-direction: column; gap: 8px;">
+                      <p class="placeholder-text" style="text-align: center; padding: 10px 0;">Nessun trattamento eseguito.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 1: Agenda Generale & Reassignments -->
+          <div id="sec-agenda-prenotazioni" class="b2b-section-card">
+            <!-- Appuntamenti Pendenti (Reassignment list) -->
+            <div class="card hot-card" id="pending-reassignments-card" style="display: none; margin-bottom: 20px;">
+              <div class="card-header flex-header">
+                <h3><i class="fa-solid fa-circle-exclamation text-danger animate-pulse"></i> Appuntamenti Pendenti (Dipendente Indisponibile)</h3>
+              </div>
+              <div class="card-body">
+                <p class="info-badge mb-3" style="background: rgba(255, 159, 67, 0.05); color: var(--pending); border-color: rgba(255, 159, 67, 0.2);">
+                  <i class="fa-solid fa-triangle-exclamation"></i> Il dipendente assegnato a queste prenotazioni ha registrato un'indisponibilità. 
+                  Riassegna l'appuntamento ad un altro dipendente qualificato e libero oppure cancella la prenotazione per emettere un **rimborso totale del 100%** al cliente.
+                </p>
+                <div id="pending-bookings-list" class="bookings-list">
+                  <p class="placeholder-text" style="padding: 10px 0;">Nessun appuntamento pendente.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Agenda Generale -->
+            <div class="card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-list-check"></i> Agenda Generale Prenotazioni Salone</h3>
+              </div>
+              <div class="card-body">
+                <div id="salon-bookings-list" class="bookings-list">
+                  <p class="placeholder-text">Caricamento prenotazioni...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Info Salone -->
+          <div id="sec-info-salone" class="b2b-section-card" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-store"></i> Informazioni Salone</h3>
+              </div>
+              <div class="card-body">
+                <form id="update-salon-form" class="styled-form">
+                  <div class="form-group">
+                    <label for="sal-info-name">Nome Salone</label>
+                    <input type="text" id="sal-info-name" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="sal-info-street">Via e Numero</label>
+                    <input type="text" id="sal-info-street" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="sal-info-city">Città</label>
+                    <div class="city-autocomplete-wrapper">
+                      <input type="text" id="sal-info-city" autocomplete="off" placeholder="Inserisci città..." required>
+                      <div id="sal-info-city-panel" class="city-autocomplete-dropdown"></div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="sal-info-desc">Descrizione</label>
+                    <textarea id="sal-info-desc" rows="3"></textarea>
+                  </div>
+
+                  <!-- Foto Principale Salone -->
+                  <div class="form-group">
+                    <label><i class="fa-solid fa-camera"></i> Foto Principale del Salone</label>
+                    <div class="photo-uploader-box" style="display: flex; gap: 15px; align-items: center; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+                      <div id="sal-info-photo-preview-box" style="width: 90px; height: 70px; border-radius: 8px; overflow: hidden; background: #eee; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                        <img id="sal-info-photo-preview" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <i id="sal-info-photo-icon" class="fa-solid fa-store" style="font-size: 28px; color: var(--text-muted);"></i>
+                      </div>
+                      <div style="flex-grow: 1;">
+                        <input type="text" id="sal-info-image" placeholder="URL Immagine o carica un file..." style="font-size: 12px; margin-bottom: 6px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                          <label class="btn btn-sm btn-gold-outline" style="cursor: pointer; margin: 0; padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-upload"></i> Carica Foto
+                            <input type="file" id="sal-info-photo-file" accept="image/*" style="display: none;">
+                          </label>
+                          <button type="button" class="btn btn-sm btn-danger-outline" id="sal-info-delete-photo-btn" style="padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-trash-can"></i> Elimina Foto Salone
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-gold">Salva Info Salone</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: Gestione Staff -->
+          <div id="sec-gestione-staff" class="b2b-section-card" style="display: none;">
+            <!-- Register Staff Card -->
+            <div class="card" style="margin-bottom: 30px;">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-user-plus"></i> Registra Nuova Estetista</h3>
+              </div>
+              <div class="card-body">
+                <form id="register-employee-form" class="styled-form">
+                  <div class="form-group">
+                    <label for="emp-email">Email Dipendente</label>
+                    <input type="email" id="emp-email" required placeholder="estetista@test.com">
+                  </div>
+                  <div class="form-group">
+                    <label for="emp-password">Password Provvisoria</label>
+                    <input type="password" id="emp-password" required placeholder="Min 6 caratteri" value="Password123!">
+                  </div>
+                  <div class="form-group row">
+                    <div class="col">
+                      <label for="emp-firstname">Nome</label>
+                      <input type="text" id="emp-firstname" required placeholder="Sofia">
+                    </div>
+                    <div class="col">
+                      <label for="emp-lastname">Cognome</label>
+                      <input type="text" id="emp-lastname" required placeholder="Rossi">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Specializzazioni (Trattamenti abilitati)</label>
+                    <div id="emp-spec-checkboxes" class="checkbox-group" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; background: var(--bg-primary); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                      <!-- Populated dynamically from script -->
+                    </div>
+                  </div>
+
+                  <!-- Foto Estetista -->
+                  <div class="form-group">
+                    <label><i class="fa-solid fa-camera"></i> Foto Dipendente (Opzionale)</label>
+                    <div class="photo-uploader-box" style="display: flex; gap: 15px; align-items: center; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+                      <div id="emp-reg-photo-preview-box" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: #eee; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 2px solid var(--gold);">
+                        <img id="emp-reg-photo-preview" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <i id="emp-reg-photo-icon" class="fa-solid fa-user-nurse" style="font-size: 24px; color: var(--text-muted);"></i>
+                      </div>
+                      <div style="flex-grow: 1;">
+                        <input type="text" id="emp-photo" placeholder="URL Foto o carica file..." style="font-size: 12px; margin-bottom: 6px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                          <label class="btn btn-sm btn-gold-outline" style="cursor: pointer; margin: 0; padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-upload"></i> Carica Foto
+                            <input type="file" id="emp-reg-photo-file" accept="image/*" style="display: none;">
+                          </label>
+                          <button type="button" class="btn btn-sm btn-danger-outline" id="emp-reg-delete-photo-btn" style="padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-trash-can"></i> Rimuovi
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-gold">Aggiungi Staff</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Staff list & Scheduling form -->
+            <div class="card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-users"></i> Gestione Turni Settimanali Staff</h3>
+              </div>
+              <div class="card-body">
+                <div id="manager-employees-list" style="margin-bottom: 20px;">
+                  <p class="placeholder-text">Caricamento dipendenti...</p>
+                </div>
+                
+                <form id="manager-schedule-form" class="styled-form" style="background: var(--bg-primary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: none;">
+                  <h5 style="color: var(--gold); margin-bottom: 10px;">Imposta Orario per: <span id="sched-emp-name" style="color: var(--text-main);"></span></h5>
+                  <input type="hidden" id="sched-emp-id">
+                  <div class="form-group">
+                    <label for="mgr-sched-date">Data del Turno</label>
+                    <input type="date" id="mgr-sched-date" required>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col">
+                      <label for="mgr-sched-start">Ora Inizio</label>
+                      <select id="mgr-sched-start" required></select>
+                    </div>
+                    <div class="col">
+                      <label for="mgr-sched-end">Ora Fine</label>
+                      <select id="mgr-sched-end" required></select>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap: 10px; margin-top: 15px;">
+                    <button type="submit" class="btn btn-sm btn-gold">Salva Turno</button>
+                    <button type="button" class="btn btn-sm btn-cancel" onclick="document.getElementById('manager-schedule-form').style.display='none'">Annulla</button>
+                  </div>
+                </form>
+
+                <form id="manager-specialization-form" class="styled-form" style="background: var(--bg-primary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: none; margin-top: 15px;">
+                  <h5 style="color: var(--gold); margin-bottom: 10px;">Modifica Specializzazione per: <span id="spec-emp-name" style="color: var(--text-main);"></span></h5>
+                  <input type="hidden" id="spec-emp-id">
+                  <div class="form-group">
+                    <label>Seleziona Specializzazioni</label>
+                    <div id="mgr-spec-checkboxes-only" class="checkbox-group" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; background: var(--bg-primary); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                      <!-- Populated dynamically from script -->
+                    </div>
+                  </div>
+                  <div style="display:flex; gap: 10px; margin-top: 15px;">
+                    <button type="submit" class="btn btn-sm btn-gold">Salva Specializzazione</button>
+                    <button type="button" class="btn btn-sm btn-cancel" onclick="document.getElementById('manager-specialization-form').style.display='none'">Annulla</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: Catalogo Servizi -->
+          <div id="sec-catalogo-servizi" class="b2b-section-card" style="display: none;">
+            <!-- Add Service Card -->
+            <div class="card" style="margin-bottom: 30px;">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-plus"></i> Aggiungi Trattamento al Catalogo</h3>
+              </div>
+              <div class="card-body">
+                <form id="add-service-form" class="styled-form">
+                  <div class="form-group">
+                    <label for="srv-category">Categoria</label>
+                    <select id="srv-category" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="srv-name">Nome Servizio</label>
+                    <input type="text" id="srv-name" placeholder="Es. Massaggio Linfodrenante" required>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col">
+                      <label for="srv-duration">Durata (minuti)</label>
+                      <input type="number" id="srv-duration" min="10" max="240" value="60" required>
+                    </div>
+                    <div class="col">
+                      <label for="srv-price">Prezzo (€)</label>
+                      <input type="number" id="srv-price" min="1" max="10000" step="0.5" placeholder="80.00" required>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="srv-description">Descrizione Trattamento</label>
+                    <textarea id="srv-description" placeholder="Descrivi brevemente il trattamento..." rows="3"></textarea>
+                  </div>
+
+                  <!-- Foto Trattamento -->
+                  <div class="form-group">
+                    <label><i class="fa-solid fa-camera"></i> Foto Trattamento (Opzionale)</label>
+                    <div class="photo-uploader-box" style="display: flex; gap: 15px; align-items: center; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+                      <div id="srv-reg-photo-preview-box" style="width: 80px; height: 60px; border-radius: 8px; overflow: hidden; background: #eee; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                        <img id="srv-reg-photo-preview" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <i id="srv-reg-photo-icon" class="fa-solid fa-spa" style="font-size: 24px; color: var(--text-muted);"></i>
+                      </div>
+                      <div style="flex-grow: 1;">
+                        <input type="text" id="srv-image" placeholder="URL Foto Trattamento o carica file..." style="font-size: 12px; margin-bottom: 6px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                          <label class="btn btn-sm btn-gold-outline" style="cursor: pointer; margin: 0; padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-upload"></i> Carica Foto
+                            <input type="file" id="srv-reg-photo-file" accept="image/*" style="display: none;">
+                          </label>
+                          <button type="button" class="btn btn-sm btn-danger-outline" id="srv-reg-delete-photo-btn" style="padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-trash-can"></i> Rimuovi
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-gold">Aggiungi Servizio</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- List Services Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-list"></i> Servizi e Listino Trattamenti</h3>
+              </div>
+              <div class="card-body">
+                <div id="manager-services-list">
+                  <p class="placeholder-text">Caricamento servizi...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 5: Pubblica Drop -->
+          <div id="sec-pubblica-drop" class="b2b-section-card" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-fire"></i> Pubblica Drop Last-Minute Manuale</h3>
+              </div>
+              <div class="card-body">
+                <form id="add-drop-form" class="styled-form">
+                  <div class="form-group">
+                    <label for="drop-service-select">Servizio</label>
+                    <select id="drop-service-select" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="drop-employee-select">Estetista/Dipendente</label>
+                    <select id="drop-employee-select" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="drop-time">Data e Ora Appuntamento</label>
+                    <input type="datetime-local" id="drop-time" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="drop-price">Prezzo Scontato (50% consigliato) (€)</label>
+                    <input type="number" id="drop-price" min="0.5" step="0.5" placeholder="Prezzo scontato" required readonly style="background-color: var(--bg-primary); color: var(--text-muted); cursor: not-allowed;">
+                  </div>
+                  <button type="submit" class="btn btn-pink w-100">Pubblica Slot Scontato</button>
+                </form>
+          </div> <!-- /main-column -->
+        </div> <!-- /dashboard-grid -->
+      </div>
+    </section>
+
+    <!-- ================= EMPLOYEE TAB ================= -->
+    <section id="employee-tab" class="tab-content">
+      <div id="employee-dashboard-view" style="display: none;">
+        
+        <!-- TOP STATS HERO BAR -->
+        <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 25px;">
+          <div class="stat-card glass" style="padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 18px; background: rgba(255,255,255,0.85); box-shadow: var(--shadow-sm);">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(224, 30, 90, 0.12); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Trattamenti Assegnati</div>
+              <div id="emp-kpi-bookings" style="font-size: 26px; font-weight: 800; color: var(--text-main);">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card glass" style="padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 18px; background: rgba(255,255,255,0.85); box-shadow: var(--shadow-sm);">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(255, 90, 95, 0.12); color: var(--pink); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Prossimo Turno</div>
+              <div id="emp-kpi-next-shift" style="font-size: 16px; font-weight: 800; color: var(--text-main);">In attesa...</div>
+            </div>
+          </div>
+
+          <div class="stat-card glass" style="padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 18px; background: rgba(255,255,255,0.85); box-shadow: var(--shadow-sm);">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(156, 39, 176, 0.12); color: var(--purple); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
+              <i class="fa-solid fa-umbrella-beach"></i>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Ferie & Assenze</div>
+              <div id="emp-kpi-absences" style="font-size: 26px; font-weight: 800; color: var(--text-main);">0 Giorni</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN DASHBOARD GRID -->
+        <div style="display: grid; grid-template-columns: 1fr 380px; gap: 25px; align-items: start;">
+          
+          <!-- LEFT COLUMN: Main Agenda & Working Shifts -->
+          <div style="display: flex; flex-direction: column; gap: 25px;">
+            
+            <!-- 1. Treatment Agenda -->
+            <div class="card glass">
+              <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3><i class="fa-solid fa-calendar-check" style="color: var(--gold);"></i> La Mia Agenda Trattamenti</h3>
+                <span class="info-badge" style="margin: 0; padding: 4px 12px; font-size: 12px;"><i class="fa-solid fa-user-clock"></i> Appuntamenti Assegnati</span>
+              </div>
+              <div class="card-body">
+                <div id="employee-bookings-list" class="bookings-list">
+                  <p class="placeholder-text">Accedi come Dipendente per visualizzare il tuo calendario appuntamenti.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Assigned Working Shifts -->
+            <div class="card glass">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-calendar-days" style="color: var(--gold);"></i> I Miei Turni Lavorativi Assegnati</h3>
+              </div>
+              <div class="card-body">
+                <div id="employee-schedules-list" class="schedules-list"></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT COLUMN: Unavailability & Absences Management -->
+          <div style="display: flex; flex-direction: column; gap: 25px;">
+            
+            <!-- Unavailability Form -->
+            <div class="card glass">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-user-slash" style="color: var(--gold);"></i> Segnala Indisponibilità / Ferie</h3>
+              </div>
+              <div class="card-body">
+                <p class="info-badge" style="margin-bottom: 15px; font-size: 12px; line-height: 1.4;">
+                  <i class="fa-solid fa-info-circle"></i> Registra i tuoi giorni di assenza per bloccare nuove prenotazioni.
+                </p>
+                
+                <form id="unavailability-form" class="styled-form">
+                  <div class="form-group">
+                    <label for="unavail-date"><i class="fa-regular fa-calendar"></i> Data Indisponibilità</label>
+                    <input type="date" id="unavail-date" required>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col">
+                      <label for="unavail-start"><i class="fa-regular fa-clock"></i> Ora Inizio</label>
+                      <select id="unavail-start" required></select>
+                    </div>
+                    <div class="col">
+                      <label for="unavail-end"><i class="fa-regular fa-clock"></i> Ora Fine</label>
+                      <select id="unavail-end" required></select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="unavail-reason"><i class="fa-solid fa-pen"></i> Motivazione (Opzionale)</label>
+                    <input type="text" id="unavail-reason" placeholder="Es. Ferie, Permesso, Malattia">
+                  </div>
+                  <button type="submit" class="btn btn-gold w-100" style="margin-top: 5px;">
+                    <i class="fa-solid fa-plus-circle"></i> Registra Assenza
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Registered Absences List -->
+            <div class="card glass">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-list-check" style="color: var(--gold);"></i> Ferie & Assenze Registrate</h3>
+              </div>
+              <div class="card-body">
+                <div id="employee-unavailabilities-list">
+                  <p class="placeholder-text" style="padding: 10px 0;">Nessun periodo di assenza inserito.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div> <!-- /grid -->
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS & OVERLAYS ================= -->
+
+  <!-- LOGIN MODAL -->
+  <dialog id="login-modal" class="modal-dialog glass">
+    <div class="modal-header">
+      <h3 id="login-modal-title">Accedi Partner</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('login-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-role-badge" class="role-badge">Salone</div>
+      
+      <form id="login-form" class="styled-form">
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required>
+        </div>
+        <button type="submit" class="btn btn-gold w-100">Accedi</button>
+      </form>
+      
+      <div class="modal-toggle-text mt-3" id="register-toggle-box">
+        Non hai registrato il salone? <a href="#" id="toggle-register-btn">Registralo ora</a>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- REGISTER MODAL -->
+  <dialog id="register-modal" class="modal-dialog glass">
+    <div class="modal-header">
+      <h3 id="register-modal-title">Registrazione Salone</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('register-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="register-form" class="styled-form">
+        <div class="form-group">
+          <label for="reg-email">Email Amministratore</label>
+          <input type="email" id="reg-email" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" required>
+        </div>
+        <div class="form-group row">
+          <div class="col">
+            <label for="reg-firstname">Nome</label>
+            <input type="text" id="reg-firstname" required>
+          </div>
+          <div class="col">
+            <label for="reg-lastname">Cognome</label>
+            <input type="text" id="reg-lastname" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reg-phone">Telefono</label>
+          <input type="text" id="reg-phone">
+        </div>
+
+        <div id="manager-reg-fields" style="display: block;">
+          <h4 class="form-section-title">Dati del Salone</h4>
+          <div class="form-group">
+            <label for="reg-salonname">Nome Salone</label>
+            <input type="text" id="reg-salonname" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-salonstreet">Via e Numero</label>
+            <input type="text" id="reg-salonstreet" placeholder="Es. Via Roma 12" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-saloncity">Città</label>
+            <div class="city-autocomplete-wrapper">
+              <input type="text" id="reg-saloncity" autocomplete="off" placeholder="Inserisci città..." required>
+              <div id="reg-saloncity-panel" class="city-autocomplete-dropdown"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-salondescription">Descrizione</label>
+            <textarea id="reg-salondescription" rows="2"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold w-100 mt-2">Registrati</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- REASSIGN EMPLOYEE MODAL -->
+  <dialog id="reassign-modal" class="modal-dialog glass">
+    <div class="modal-header">
+      <h3>Sostituisci Estetista</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('reassign-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
+        Assegna questo appuntamento ad un altro dipendente qualificato e disponibile.
+      </p>
+      <form id="reassign-form" class="styled-form">
+        <input type="hidden" id="reassign-booking-id">
+        <div class="form-group">
+          <label for="reassign-employee-select">Seleziona Dipendente Sostituto</label>
+          <select id="reassign-employee-select" required>
+            <option value="">Seleziona un dipendente...</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-gold w-100 mt-3">Conferma Riassegnazione</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- SETTINGS MODAL -->
+  <dialog id="settings-modal" class="modal-dialog glass">
+    <div class="modal-header">
+      <h3>Configurazione API Endpoint</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('settings-modal').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="description-text mb-3">In produzione su AWS le API sono instradate automaticamente tramite CloudFront e ALB. Questo pannello permette di sovrascrivere manualmente gli endpoint per ambienti di test e debug.</p>
+      <form id="settings-form" class="styled-form">
+        <div class="form-group">
+          <label for="cfg-auth-url">Auth Service URL</label>
+          <input type="url" id="cfg-auth-url" placeholder="https://dXXXXXXXX.cloudfront.net o http://alb-dns o http://localhost:3001" required>
+        </div>
+        <div class="form-group">
+          <label for="cfg-booking-url">Booking Service URL</label>
+          <input type="url" id="cfg-booking-url" placeholder="https://dXXXXXXXX.cloudfront.net o http://alb-dns o http://localhost:3002" required>
+        </div>
+        <div class="form-group">
+          <label for="cfg-drop-url">Drop Service URL</label>
+          <input type="url" id="cfg-drop-url" placeholder="https://dXXXXXXXX.cloudfront.net o http://alb-dns o http://localhost:3003" required>
+        </div>
+        <button type="submit" class="btn btn-gold w-100 mt-2">Salva Configurazione</button>
+      </form>
+    </div>
+  </dialog>
+
+  <footer class="main-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <img src="logo2.png" alt="GlamDrop Logo" style="height: 96px; object-fit: contain; margin-bottom: 10px;">
+        <p class="footer-logo-desc">GlamDrop è la piattaforma leader per la prenotazione di trattamenti di bellezza e benessere last-minute con sconti flash esclusivi del 50%.</p>
+        <div class="payment-methods-row">
+          <i class="fa-brands fa-cc-visa"></i>
+          <i class="fa-brands fa-cc-mastercard"></i>
+          <i class="fa-brands fa-cc-paypal"></i>
+          <i class="fa-brands fa-cc-apple-pay"></i>
+          <i class="fa-brands fa-cc-amazon-pay"></i>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Chi Siamo</h4>
+        <ul>
+          <li><a>La Nostra Storia</a></li>
+          <li><a>Lavora con Noi</a></li>
+          <li><a>Stampa & Media</a></li>
+          <li><a>Contattaci</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Informativa Legale</h4>
+        <ul>
+          <li><a>Termini & Condizioni</a></li>
+          <li><a>Informativa Privacy</a></li>
+          <li><a>Informativa Cookie</a></li>
+          <li><a>Gestione Consensi</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Business & Dev</h4>
+        <ul>
+          <li><a href="#" id="footer-client-portal-link" style="font-weight: 700; color: var(--gold);"><i class="fa-solid fa-arrow-left"></i> Area Clienti (B2C)</a></li>
+          <li><a href="#" id="footer-sim-link" style="font-weight: 700; cursor: pointer;"><i class="fa-solid fa-square-poll-vertical"></i> Concurrency Test</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 GlamDrop S.r.l. Tutti i diritti riservati. P.IVA 12345678901</div>
+      <div class="footer-bottom-links">
+        <a>Privacy Policy</a>
+        <a>Cookie Policy</a>
+      </div>
+    </div>
+  </footer>
+
+
+
+  <!-- MODAL: Employee Shift History -->
+  <dialog id="modal-employee-history" class="modal-dialog" style="max-width: 580px;">
+    <div class="modal-header">
+      <h3 id="history-modal-title">Storico Turni</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('modal-employee-history').close()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="history-modal-body" style="padding: 20px; max-height: 400px; overflow-y: auto;">
+      <!-- Populated dynamically -->
+    </div>
+  </dialog>
+
+  <!-- MODAL: Edit Employee & Photo -->
+  <dialog id="modal-edit-employee" class="modal-dialog glass" style="max-width: 500px;">
+    <div class="modal-header">
+      <h3 id="edit-emp-modal-title">Modifica Dipendente & Foto</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('modal-edit-employee').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="edit-employee-form" class="styled-form">
+        <input type="hidden" id="edit-emp-id">
+        
+        <div class="form-group row">
+          <div class="col">
+            <label for="edit-emp-firstname">Nome</label>
+            <input type="text" id="edit-emp-firstname" required>
+          </div>
+          <div class="col">
+            <label for="edit-emp-lastname">Cognome</label>
+            <input type="text" id="edit-emp-lastname" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-camera"></i> Foto Dipendente / Estetista</label>
+          <div class="photo-uploader-box" style="display: flex; gap: 15px; align-items: center; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+            <div id="edit-emp-photo-preview-box" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: #eee; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 2px solid var(--gold);">
+              <img id="edit-emp-photo-preview" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+              <i id="edit-emp-photo-icon" class="fa-solid fa-user-nurse" style="font-size: 24px; color: var(--text-muted);"></i>
+            </div>
+            <div style="flex-grow: 1;">
+              <input type="text" id="edit-emp-photo-url" placeholder="URL Immagine o carica un file..." style="font-size: 12px; margin-bottom: 6px;">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <label class="btn btn-sm btn-gold-outline" style="cursor: pointer; margin: 0; padding: 4px 8px; font-size: 11px;">
+                  <i class="fa-solid fa-upload"></i> Carica Foto
+                  <input type="file" id="edit-emp-photo-file" accept="image/*" style="display: none;">
+                </label>
+                <button type="button" class="btn btn-sm btn-danger-outline" id="edit-emp-delete-photo-btn" style="padding: 4px 8px; font-size: 11px;">
+                  <i class="fa-solid fa-trash-can"></i> Elimina Foto
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold w-100 mt-2">Salva Modifiche Staff</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- MODAL: Edit Service & Photo -->
+  <dialog id="modal-edit-service" class="modal-dialog glass" style="max-width: 520px;">
+    <div class="modal-header">
+      <h3 id="edit-srv-modal-title">Modifica Trattamento & Foto</h3>
+      <button class="close-modal-btn" onclick="document.getElementById('modal-edit-service').close()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="edit-service-form" class="styled-form">
+        <input type="hidden" id="edit-srv-id">
+
+        <div class="form-group">
+          <label for="edit-srv-name">Nome Trattamento</label>
+          <input type="text" id="edit-srv-name" required>
+        </div>
+
+        <div class="form-group row">
+          <div class="col">
+            <label for="edit-srv-duration">Durata (minuti)</label>
+            <input type="number" id="edit-srv-duration" min="10" max="240" required>
+          </div>
+          <div class="col">
+            <label for="edit-srv-price">Prezzo (€)</label>
+            <input type="number" id="edit-srv-price" min="1" max="10000" step="0.5" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-srv-desc">Descrizione Trattamento</label>
+          <textarea id="edit-srv-desc" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-camera"></i> Foto Trattamento</label>
+          <div class="photo-uploader-box" style="display: flex; gap: 15px; align-items: center; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+            <div id="edit-srv-photo-preview-box" style="width: 80px; height: 60px; border-radius: 8px; overflow: hidden; background: #eee; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+              <img id="edit-srv-photo-preview" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+              <i id="edit-srv-photo-icon" class="fa-solid fa-spa" style="font-size: 24px; color: var(--text-muted);"></i>
+            </div>
+            <div style="flex-grow: 1;">
+              <input type="text" id="edit-srv-photo-url" placeholder="URL Foto Trattamento o carica file..." style="font-size: 12px; margin-bottom: 6px;">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <label class="btn btn-sm btn-gold-outline" style="cursor: pointer; margin: 0; padding: 4px 8px; font-size: 11px;">
+                  <i class="fa-solid fa-upload"></i> Carica Foto
+                  <input type="file" id="edit-srv-photo-file" accept="image/*" style="display: none;">
+                </label>
+                <button type="button" class="btn btn-sm btn-danger-outline" id="edit-srv-delete-photo-btn" style="padding: 4px 8px; font-size: 11px;">
+                  <i class="fa-solid fa-trash-can"></i> Elimina Foto
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold w-100 mt-2">Salva Modifiche Trattamento</button>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="app.js?v=24"></script>
+  <script>
+    function switchB2BTab(tabId, el) {
+      // Hide all B2B section cards
+      document.querySelectorAll('.b2b-section-card').forEach(card => card.style.display = 'none');
+      // Show target card
+      const target = document.getElementById(tabId);
+      if (target) target.style.display = 'block';
+      // Remove active class from menu items
+      document.querySelectorAll('.partner-menu-item').forEach(item => item.classList.remove('active'));
+      // Add active class to clicked menu item
+      if (el) el.classList.add('active');
+
+      if (tabId === 'sec-statistiche-salone' && typeof renderB2BStats === 'function') {
+        renderB2BStats();
+      }
+    }
+  </script>
+</body>
+</html>

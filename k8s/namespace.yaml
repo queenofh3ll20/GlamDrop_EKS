@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: glamdrop
+  labels:
+    name: glamdrop
+    app.kubernetes.io/name: glamdrop
