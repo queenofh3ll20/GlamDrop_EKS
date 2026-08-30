@@ -2,7 +2,7 @@
 
 <img src="docs/assets/logo.png" alt="GlamDrop Logo" width="160"/>
 
-<h1 align="center">GlamDrop EKS — Beauty Booking Platform su Amazon EKS v1.36</h1>
+<h1 align="center">GlamDrop EKS — Beauty Booking Platform su Amazon EKS</h1>
 
 <p align="center">
   Versione enterprise cloud-native della piattaforma <strong>GlamDrop</strong> su <strong>Amazon Elastic Kubernetes Service (EKS)</strong>.<br>
@@ -27,13 +27,11 @@
 - [Panoramica](#-panoramica)
 - [Funzionalità Principali](#-funzionalità-principali)
 - [Architettura & Flusso degli Eventi](#-architettura--flusso-degli-eventi)
-- [Convenzione Tag AWS](#️-convenzione-dei-tag--isolamento-su-aws)
 - [Stack Tecnologico & Mappatura Servizi AWS](#-stack-tecnologico--mappatura-servizi-aws-gestiti)
 - [Infrastruttura EKS](#️-infrastruttura-eks)
 - [Deployment](#-deployment-su-amazon-eks)
 - [Configurazione](#-configurazione-variabili-dambiente-e-secret-kubernetes)
 - [Test Automatizzati](#-test-automatizzati)
-- [Sicurezza](#️-sicurezza-avanzata-resilienza--devsecops-su-eks)
 - [Teardown](#-teardown-dellinfrastruttura)
 - [Struttura del Progetto](#-struttura-del-progetto)
 
@@ -64,8 +62,6 @@ Per mitigare il **Thundering Herd Problem** ed evitare fenomeni di *overselling*
 1. **Lock Atomico in-memory**: La concorrenza sul riscatto è gestita a livello di cache in-memory (**Redis**) tramite operazioni atomiche (`SET NX` / script Lua single-thread).
 2. **Latenza Sub-millisecondo**: Il sistema risponde immediatamente con HTTP `202 Accepted` all'unico vincitore del claim e con HTTP `409 Conflict` a tutti gli altri tentativi concorrenti in $< 2\text{ms}$.
 3. **Persistenza Asincrona Event-Driven**: Il claim confermato viene pubblicato su una coda dedicata (**RabbitMQ**) per la finalizzazione asincrona su database relazionale (**PostgreSQL**) e l'aggiornamento in tempo reale delle agende.
-
-![divider](https://capsule-render.vercel.app/api?type=soft&color=0:FF69B4,100:FFA500&height=3&section=header)
 
 ### ✨ Funzionalità principali
 
@@ -172,8 +168,6 @@ chmod +x deploy.sh
 ./deploy.sh
 ```
 
-![divider](https://capsule-render.vercel.app/api?type=soft&color=0:FF69B4,100:FFA500&height=3&section=header)
-
 ### 🪟 Opzione B — Deploy da Windows (PowerShell)
 
 #### ✅ Prerequisiti
@@ -207,7 +201,6 @@ kubectl get nodes   # Verifica: tutti i nodi devono risultare Ready
 .\deploy.ps1
 ```
 
-![divider](https://capsule-render.vercel.app/api?type=soft&color=0:FF69B4,100:FFA500&height=3&section=header)
 
 ### 📋 Fasi Eseguite dallo Script di Deploy
 
@@ -270,8 +263,6 @@ Per distruggere determinatisticamente tutte le risorse create su AWS ed azzerare
 cd terraform
 terraform destroy -auto-approve
 ```
-
----
 
 ## 📂 Struttura del Progetto
 
