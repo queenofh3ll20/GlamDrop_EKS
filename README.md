@@ -248,13 +248,6 @@ python tests/test-concurrency.py --endpoint https://<CLOUDFRONT_DOMAIN>/api
 - ✅ **Esito atteso**: esattamente **1 client** riceve HTTP `202 Accepted` (claim confermato), mentre i restanti **49** ricevono HTTP `409 Conflict`.
 - 🔒 **Integrità**: quantità residua pari a `0`, nessun overselling o blocco su RDS.
 
-### 📆 Test Sovrapposizione Prenotazioni
-Verifica la prevenzione dei conflitti di orario:
-```bash
-python tests/test-booking-overlap.py --endpoint https://<CLOUDFRONT_DOMAIN>/api
-```
-
-
 ## 🧹 Teardown dell'Infrastruttura
 
 Per distruggere determinatisticamente tutte le risorse create su AWS ed azzerare i costi:
